@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Human-friendly summary of disk usage.
@@ -96,7 +96,7 @@ def disk_usage(
             path = os.path.join(root, name)
             try:
                 size = os.path.getsize(path)
-            except:
+            except os.error:
                 if verbose >= VERB_LVL['high']:
                     warnings.warn(path + ': could not determine size')
                 size = 0
