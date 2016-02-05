@@ -82,12 +82,12 @@ def disk_usage(
 
     Returns:
         contents (dict): dictionary where the key is the subfolder, relative
-        total (int): total size of sub-files and sub-directories in bytes
+        total_size (int): total size of sub-files and sub-directories in bytes
     """
     if base_path.endswith(os.path.sep):
         base_path = base_path[:-len(os.path.sep)]
     contents = {}
-    total, num_files, num_dirs = 0, 0, 0
+    total_size, num_files, num_dirs = 0, 0, 0
 
     for root, dirs, files in os.walk(base_path, followlinks=followlinks):
         basename = root[len(base_path):]
@@ -109,10 +109,10 @@ def disk_usage(
             for key in contents.keys():
                 if basename[1:].startswith(key):
                     contents[key] += size
-            total += size
+            total_size += size
         num_files += len(files)
         num_dirs += len(dirs)
-    return contents, total, num_files, num_dirs
+    return contents, total_size, num_files, num_dirs
 
 
 # ======================================================================
@@ -223,7 +223,7 @@ def humanize(
 # ======================================================================
 def disk_usage_to_str(
         contents,
-        total,
+        total_size,
         num_files,
         num_dirs,
         base_path,
@@ -237,7 +237,7 @@ def disk_usage_to_str(
 
     Args:
         contents (dict): dictionary where the key is the subfolder, relative
-        total (int): total size of sub-files and sub-directories in bytes
+        total_size (int): total size of sub-files and sub-directories in bytes
         num_files (int): total number of files
         num_dirs (int): total number of dirs
         base_path (str): directory where to operate
@@ -251,27 +251,28 @@ def disk_usage_to_str(
     Returns:
         text (str): String containing the disk usage information
     """
-    tot_size_str, tot_units_str = humanize(total, units)
+    tot_size_str, tot_units_str = humanize(total_size, units)
     len_size = len(tot_size_str)
     len_units = len(tot_units_str) + 1
     lines = []
-    for name, size in sorted(contents.items()):
-        percent = size / total if total != 0.0 else 0.0
-        size_str, units_str = humanize(size, units)
-        lines.append(
-            ' '.join((
-                progress_bar(percent, bar_size) if bar_size > 0 else '',
-                '{:>{len_size}.{len_precision}%}'.format(
-                    percent, len_size=4 + percent_precision,
-                    len_precision=percent_precision),
-                '{:>{len_size}}{:<{len_units}}'.format(
-                    size_str, units_str,
-                    len_size=len_size, len_units=len_units),
-                name)))
+    if verbose >= D_VERB_LVL:
+        for name, size in sorted(contents.items()):
+            percent = size / total_size if total_size != 0.0 else 0.0
+            size_str, units_str = humanize(size, units)
+            lines.append(
+                ' '.join((
+                    progress_bar(percent, bar_size) if bar_size > 0 else '',
+                    '{:>{len_size}.{len_precision}%}'.format(
+                        percent, len_size=4 + percent_precision,
+                        len_precision=percent_precision),
+                    '{:>{len_size}}{:<{len_units}}'.format(
+                        size_str, units_str,
+                        len_size=len_size, len_units=len_units),
+                    name)))
     lines.append(os.path.realpath(base_path))
     lines.append(
         '{}{} ({}B), {} file(s), {} dir(s)'.format(
-            tot_size_str, tot_units_str, total, num_files, num_dirs))
+            tot_size_str, tot_units_str, total_size, num_files, num_dirs))
     text = line_sep.join(lines)
     return text
 
