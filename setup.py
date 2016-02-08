@@ -17,10 +17,8 @@ with open(os.path.join(cwd, 'README'), encoding='utf-8') as readme_file:
 setup(
     name='hdu',
 
-    # Versions should comply with PEP440.  For a discussion on single-sourcing
-    # the version across setup.py and the project code, see
-    # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.2.0',
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
 
     description='Human-friendly summary of disk usage.',
     long_description=long_description,
@@ -100,7 +98,4 @@ setup(
             'sample=sample:main',
         ],
     },
-
-    use_scm_version=True,
-    setup_requires=['setuptools_scm'],
 )

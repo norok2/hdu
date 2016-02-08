@@ -1,24 +1,16 @@
 hdu: Human-friendly summary of disk usage
 =========================================
 
-A sample project that exists as an aid to the `Python Packaging User Guide
-<https://packaging.python.org>`_'s `Tutorial on Packaging and Distributing
-Projects <https://packaging.python.org/en/latest/distributing.html>`_.
+This software computes an estimate of the file disk usage for files and directories, symilarly to the UNIX program 'du'.
+The result is then displayed in a human friendly format.
 
-This projects does not aim to cover best practices for Python project
-development as a whole. For example, it does not provide guidance or tool
-recommendations for version control, documentation, or testing.
-
-----
-
-This is the README file for the project.
-
-The file should use UTF-8 encoding and be written using ReStructured Text. It
-will be used to generate the project webpage on PyPI and will be displayed as
-the project homepage on common code-hosting services, and should be written for
-that purpose.
-
-Typical contents for this file would include an overview of the project, basic
-usage examples, etc. Generally, including the project changelog in here is not
-a good idea, although a simple "What's New" section for the most recent version
-may be appropriate.
+It includes the following features:
+- a progress bar of each item for quick visual inspection
+- percentage information (precision can be set)
+- the size of each item in the specified units
+- support for SI, IEC and UNIX ('du') units
+- maximum depth (of the displayed items) can be specified
+- can filter results to display only directories
+- can filter results to hide hidden files (starting with '.')
+- can output results ending with '\0' instead of newlines (useful for parsing)
+- can sort results by name or by size
