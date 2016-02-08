@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Human-friendly summary of disk usage.
+Human-friendly summary of estimated disk space usage for files and directories.
 
 Offers a similar information as the standard UNIX program 'du', but in a more
-human-friendly format. This program is loosely based on an earlier script
-by Roberto Metere.
+human-friendly format. This program is loosely based on an earlier shell script
+by Roberto Metere and has been improved suggestions from Stefania Grasso.
 """
 
 # ======================================================================
@@ -53,7 +53,12 @@ VERB_LVL = {'none': 0, 'low': 1, 'medium': 2, 'high': 3, 'debug': 5}
 D_VERB_LVL = VERB_LVL['low']
 
 # ======================================================================
+# magnitude prefix for the units
+# except for the case, it is the same for SI, IEC and UNIX
 UNITS_PREFIX = ('k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
+
+# by the definition of units, the length of the size str cannot exceed 4
+MAX_CHAR_SIZE = 4
 
 
 # ======================================================================
@@ -146,7 +151,7 @@ def progress_bar(
 
 
 # ======================================================================
-def _adjust_format(value, order, num_chars=4):
+def _adjust_format(value, order, num_chars=MAX_CHAR_SIZE):
     len_integral_part = len(str(int(value)))
     if len_integral_part + 1 > num_chars or order == 0:
         precision = 0
@@ -227,6 +232,7 @@ def disk_usage_to_str(
         num_files,
         num_dirs,
         base_path,
+        sort_by='name',
         units='unix',
         percent_precision=2,
         bar_size=24,
@@ -243,6 +249,8 @@ def disk_usage_to_str(
         base_path (str): directory where to operate
         units (str): units to use ['iec'|'si'|'unix'|<exact>] (e.g. 'KiB').
             See 'humanize' for more details
+        sort_by (str): specify how to sort the results
+            ['name'|'name_r'|'size'|'size_r']
         percent_precision (int): Number of decimal digits for percentage
         bar_size (int): number of characters of the progress bar
         line_sep (str): line separator
@@ -252,11 +260,22 @@ def disk_usage_to_str(
         text (str): String containing the disk usage information
     """
     tot_size_str, tot_units_str = humanize(total_size, units)
-    len_size = len(tot_size_str)
+    # assuming the length of the units str is monotonically increasing
     len_units = len(tot_units_str) + 1
     lines = []
     if verbose >= D_VERB_LVL:
-        for name, size in sorted(contents.items()):
+        if sort_by.startswith('name'):
+            index = 0
+        elif sort_by.startswith('size'):
+            index = 1
+        else:
+            index = 0
+            msg = '{}: unknown sorting. Fall back to: name'.format(sort_by)
+            warnings.warn(msg)
+        reversed = sort_by.endswith('_r')
+        sorted_items = sorted(
+            list(contents.items()), key=lambda x: x[index], reverse=reversed)
+        for (name, size) in sorted_items:
             percent = size / total_size if total_size != 0.0 else 0.0
             size_str, units_str = humanize(size, units)
             lines.append(
@@ -267,7 +286,7 @@ def disk_usage_to_str(
                         len_precision=percent_precision),
                     '{:>{len_size}}{:<{len_units}}'.format(
                         size_str, units_str,
-                        len_size=len_size, len_units=len_units),
+                        len_size=MAX_CHAR_SIZE, len_units=len_units),
                     name)))
     lines.append(os.path.realpath(base_path))
     lines.append(
@@ -284,6 +303,7 @@ def hdu(
         show_hidden,
         max_depth,
         followlinks,
+        sort_by,
         units,
         percent_precision,
         bar_size,
@@ -298,6 +318,8 @@ def hdu(
         show_hidden (bool): allow display of hidden files and directories
         max_depth (int): max recursion depth (negative for unlimited)
         followlinks (bool): recursively follow links
+        sort_by (str): specify how to sort the results
+            ['name'|'name_r'|'size'|'size_r']
         units (str): units to use ['iec'|'si'|'unix'|<exact>] (e.g. 'KiB').
             See 'humanize' for more details
         percent_precision (int): number of decimal digits for percentage
@@ -316,7 +338,7 @@ def hdu(
             line_sep = '\0' if eof_line_sep else '\n'
             text = disk_usage_to_str(
                 contents, total, num_files, num_dirs, base_path, units,
-                percent_precision, bar_size, line_sep, verbose)
+                sort_by, percent_precision, bar_size, line_sep, verbose)
             if i > 0:
                 print()
             print(text)
@@ -325,7 +347,7 @@ def hdu(
             contents = {base_path: size}
             line_sep = '\0' if eof_line_sep else '\n'
             text = disk_usage_to_str(
-                contents, size, 1, 0, base_path, units,
+                contents, size, 1, 0, base_path, units, sort_by,
                 percent_precision, bar_size, line_sep, verbose)
             print(text)
         else:
@@ -385,6 +407,10 @@ def handle_arg():
         default='unix',
         help='display results in the specified units [%(default)s]')
     arg_parser.add_argument(
+        '-o', '--sort_by', metavar='name|name_r|size|size_r',
+        default='size',
+        help='display results in the specified units [%(default)s]')
+    arg_parser.add_argument(
         '-p', '--percent_precision', metavar='N',
         type=int, default=2,
         help='number of decimal digits in the percent field [%(default)s]')
@@ -413,5 +439,5 @@ if __name__ == '__main__':
     hdu(
         ARGS.TARGET,
         ARGS.only_dirs, ARGS.no_hidden, ARGS.max_depth, ARGS.followlinks,
-        ARGS.units, ARGS.percent_precision, ARGS.bar_size, ARGS.eof_line_sep,
-        ARGS.verbose)
+        ARGS.units, ARGS.sort_by, ARGS.percent_precision, ARGS.bar_size,
+        ARGS.eof_line_sep, ARGS.verbose)
