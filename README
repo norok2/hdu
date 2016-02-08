@@ -1,10 +1,11 @@
 hdu: Human-friendly summary of disk usage
 =========================================
 
-This software computes an estimate of the file disk usage for files and directories, symilarly to the UNIX program 'du'.
+This software computes an estimate of the file disk usage for files and directories, similarly to the UNIX program 'du'.
 The result is then displayed in a human friendly format.
 
 It includes the following features:
+
 - a progress bar of each item for quick visual inspection
 - percentage information (precision can be set)
 - the size of each item in the specified units
