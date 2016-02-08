@@ -23,14 +23,11 @@ setup(
     description='Human-friendly summary of disk usage.',
     long_description=long_description,
 
-    # The project's main homepage.
-    url='https://github.com/pypa/sampleproject',
+    url='https://bitbucket.org/norok2/hdu',
 
-    # Author details
     author='Riccardo Metere',
     author_email='rick@metere.it',
 
-    # Choose your license
     license='GPLv3+',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -64,35 +61,22 @@ setup(
     keywords='sample setuptools development',
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    # py_modules=['hdu'],
 
-    # Alternatively, if you want to distribute just a my_module.py, uncomment
-    # this:
-    #   py_modules=["my_module"],
-
-    # List run-time dependencies here.  These will be installed by pip when
-    # your project is installed. For an analysis of "install_requires" vs pip's
-    # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['peppercorn'],
+    # install_requires=['peppercorn'],
+    #
+    # extras_require={
+    #     'dev': ['check-manifest'],
+    #     'test': ['coverage'],
+    # },
 
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). You can install these using the following syntax,
-    # for example:
-    # $ pip install -e .[dev,test]
-    extras_require={
-        'dev': ['check-manifest'],
-        'test': ['coverage'],
-    },
+    # package_data={
+    #     'sample': ['package_data.dat'],
+    # },
 
-    package_data={
-        'sample': ['package_data.dat'],
-    },
+    # data_files=[('my_data', ['data/data_file'])],
 
-    data_files=[('my_data', ['data/data_file'])],
-
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
             'sample=sample:main',
