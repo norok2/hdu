@@ -6,22 +6,22 @@ See: https://packaging.python.org/en/latest/distributing.html
 
 from setuptools import setup, find_packages
 from codecs import open  # use a consistent encoding (in Python 2)
+from hdu.hdu import __version__ as version_text
 import os
 
 cwd = os.path.realpath(os.path.dirname(__file__))
 
 # get the long description from the README file
 with open(os.path.join(cwd, 'README'), encoding='utf-8') as readme_file:
-    long_description = readme_file.read()
+    long_description_text = readme_file.read()
 
 setup(
     name='hdu',
 
-    use_scm_version=True,
-    setup_requires=['setuptools_scm'],
-
     description='Human-friendly summary of disk usage.',
-    long_description=long_description,
+    long_description=long_description_text,
+
+    version=version_text,
 
     url='https://bitbucket.org/norok2/hdu',
 
@@ -58,22 +58,14 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
 
-    keywords='sample setuptools development',
+    keywords='du disk usage console cli tui',
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    # py_modules=['hdu'],
 
-    # https://packaging.python.org/en/latest/requirements.html
-    # install_requires=['peppercorn'],
-    #
-    # extras_require={
-    #     'dev': ['check-manifest'],
-    #     'test': ['coverage'],
-    # },
-
-    # package_data={
-    #     'sample': ['package_data.dat'],
-    # },
+    package_data={
+        'readme': ['README'],
+        'license': ['LICENSE'],
+    },
 
     # data_files=[('my_data', ['data/data_file'])],
 

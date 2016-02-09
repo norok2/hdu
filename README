@@ -15,3 +15,11 @@ It includes the following features:
 - can filter results to hide hidden files (starting with '.')
 - can output results ending with '\0' instead of newlines (useful for parsing)
 - can sort results by name or by size
+
+Note
+----
+Although the software is substantially ready, the packaging is still
+experimental (e.g. the license seems to be missing).
+For a better experience it is recommended to link 'hdu.py' to 'hdu' in your
+(local?) bin directory (until I find a way of adding that to the installation).
+If you have any issues or suggestion, please contact me at <rick@metere.it>
