@@ -13,7 +13,7 @@ It includes the following features:
 - maximum depth (of the displayed items) can be specified
 - can filter results to display only directories
 - can filter results to hide hidden files (starting with '.')
-- can output results ending with '\0' instead of newlines (useful for parsing)
+- can output results ending with '\\0' instead of newlines (useful for parsing)
 - can sort results by name or by size
 
 Note
