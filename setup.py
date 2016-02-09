@@ -58,7 +58,7 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
 
-    keywords='du disk usage console cli tui',
+    keywords='hdu du disk usage console cli tui',
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
