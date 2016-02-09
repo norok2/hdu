@@ -23,15 +23,16 @@ If you have any issues or suggestion, please contact the authors.
 
 Installation
 ------------
-The recommended way of installing the software is through PyPI:
+The recommended way of installing the software is through
+`PyPI <https://pypi.python.org/pypi/hdu>`_:
 
-.. code:: sh
+.. code:: shell
 
     pip install hdu
 
 Alternatively you can the clone the source repository:
 
-.. code:: sh
+.. code:: shell
 
     mkdir hdu
     cd hdu
