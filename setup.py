@@ -62,10 +62,9 @@ setup(
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
-    package_data={
-        'readme': ['README'],
-        'license': ['LICENSE'],
-    },
+    # package_data={
+    #     'license': ['LICENSE'],
+    # },
 
     # data_files=[('my_data', ['data/data_file'])],
 
