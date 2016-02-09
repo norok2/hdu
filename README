@@ -2,7 +2,7 @@ hdu: Human-friendly summary of disk usage
 =========================================
 
 This software computes an estimate of the file disk usage for files and directories, similarly to the UNIX program 'du'.
-The result is then displayed in a human friendly format.
+The result is then displayed to the console in a human friendly format.
 
 It includes the following features:
 
@@ -20,3 +20,18 @@ Note
 ----
 Although the software is ready, the packaging is still experimental.
 If you have any issues or suggestion, please contact the authors.
+
+Installation
+------------
+The recommended way of installing the software is through PyPI:
+
+    $ pip install hdu
+
+Alternatively you can the clone the source repository:
+
+    $ mkdir hdu
+    $ cd hdu
+    $ git clone git@bitbucket.org:norok2/hdu.git
+    $ python setup.py install
+
+(last step may require additional permissions depending on your configuration)
