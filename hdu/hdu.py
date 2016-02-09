@@ -18,7 +18,7 @@ from __future__ import unicode_literals
 # ======================================================================
 # :: Python Standard Library Imports
 import os  # Miscellaneous operating system interfaces
-# import sys  # System-specific parameters and functions
+import sys  # System-specific parameters and functions
 import math  # Mathematical functions
 import argparse  # Parser for command-line options, arguments and subcommands
 import re  # Regular expression operations
@@ -26,7 +26,7 @@ import warnings  # Warning control
 
 # ======================================================================
 # :: Version
-__version__ = '0.2.2'
+__version__ = '0.2.2.3'
 
 # ======================================================================
 # :: Project Details
@@ -424,18 +424,27 @@ def handle_arg():
 
 
 # ======================================================================
-if __name__ == '__main__':
+def main(argv=None):
+    """The main routine."""
+    if argv is None:
+        argv = sys.argv[1:]
+
     # :: handle program parameters
-    ARG_PARSER = handle_arg()
-    ARGS = ARG_PARSER.parse_args()
+    arg_parser = handle_arg()
+    args = arg_parser.parse_args()
     # :: print debug info
-    if ARGS.verbose == VERB_LVL['debug']:
-        ARG_PARSER.print_help()
+    if args.verbose == VERB_LVL['debug']:
+        arg_parser.print_help()
         print()
-        print('II:', 'Parsed Arguments:', ARGS)
+        print('II:', 'Parsed Arguments:', args)
 
     hdu(
-        ARGS.TARGET,
-        ARGS.only_dirs, ARGS.no_hidden, ARGS.max_depth, ARGS.followlinks,
-        ARGS.units, ARGS.sort_by, ARGS.percent_precision, ARGS.bar_size,
-        ARGS.eof_line_sep, ARGS.verbose)
+        args.TARGET,
+        args.only_dirs, args.no_hidden, args.max_depth, args.followlinks,
+        args.units, args.sort_by, args.percent_precision, args.bar_size,
+        args.eof_line_sep, args.verbose)
+
+
+# ======================================================================
+if __name__ == "__main__":
+    main()

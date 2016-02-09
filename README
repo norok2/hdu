@@ -20,6 +20,4 @@ Note
 ----
 Although the software is substantially ready, the packaging is still
 experimental (e.g. the license seems to be missing).
-For a better experience it is recommended to link 'hdu.py' to 'hdu' in your
-(local?) bin directory (until I find a way of adding that to the installation).
 If you have any issues or suggestion, please contact me at <rick@metere.it>
