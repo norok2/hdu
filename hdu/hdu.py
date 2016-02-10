@@ -26,7 +26,7 @@ import warnings  # Warning control
 
 # ======================================================================
 # :: Version
-__version__ = '0.2.2.5'
+__version__ = '0.2.2.6'
 
 # ======================================================================
 # :: Project Details
@@ -96,10 +96,21 @@ def disk_usage(
     for root, dirs, files in os.walk(base_path, followlinks=follow_links):
         base_subpath = root[len(base_path) + len(os.path.sep):]
         depth = root[len(base_path):].count(os.path.sep)
+        total_size += os.path.getsize(root)
+        for key in contents.keys():
+            if key.endswith(os.path.sep):
+                key_str = key[:-len(os.path.sep)]
+            else:
+                key_str = key
+            if base_subpath.startswith(key_str):
+                contents[key] += size
+        print(root)
         for name in dirs + files:
             path = os.path.join(root, name)
             try:
                 size = os.path.getsize(path)
+                if verbose >= VERB_LVL['debug']:
+                    print(size, path)
             except os.error:
                 if verbose >= VERB_LVL['high']:
                     warnings.warn(path + ': could not determine size')
@@ -108,18 +119,23 @@ def disk_usage(
             is_regular = os.path.isfile(path) or is_dir
             is_accepted = \
                 (not only_dir or only_dir and is_dir) and \
-                (show_hidden or not show_hidden and not _is_hidden(name)) and \
+                (show_hidden or not show_hidden and not _is_hidden(name))
+            is_displayed = \
                 (allow_non_regular or is_regular) and \
                 (follow_links or not os.path.islink(path))
-            if (max_depth < 0 or depth < max_depth) and is_accepted:
-                name = path[len(base_path) + len(os.path.sep):] + (
-                    os.path.sep if os.path.isdir(path) else '')
-                contents[name] = size
-            for key in contents.keys():
-                offset = len(os.path.sep) if key.endswith(os.path.sep) else 0
-                if base_subpath.startswith(key[:-offset]) and is_accepted:
-                    contents[key] += size
             if is_accepted:
+                if (max_depth < 0 or depth < max_depth) and is_displayed:
+                    name = path[len(base_path) + len(os.path.sep):] + (
+                        os.path.sep if is_dir else '')
+                    contents[name] = size
+                else:
+                    for key in contents.keys():
+                        if key.endswith(os.path.sep):
+                            key_str = key[:-len(os.path.sep)]
+                        else:
+                            key_str = key
+                        if base_subpath.startswith(key_str):
+                            contents[key] += size
                 total_size += size
         num_files += len(files)
         num_dirs += len(dirs)
