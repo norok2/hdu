@@ -67,34 +67,35 @@ def _is_hidden(filename):
 # ======================================================================
 def disk_usage(
         base_path=os.getcwd(),
-        only_dirs=False,
+        allow_non_regular=True,
+        only_dir=False,
         show_hidden=True,
         max_depth=1,
-        followlinks=False,
+        follow_links=False,
         verbose=D_VERB_LVL):
     """
     Display a human-friendly summary of disk usage.
 
     Args:
         base_path (str): directory where to operate
-        only_dirs (bool): show only directories and not files
+        only_dir (bool): show only directories and not files
         show_hidden (bool): allow display of hidden files and directories
         max_depth (int): max recursion depth (negative for unlimited)
-        followlinks (bool): recursively follow links
+        follow_links (bool): recursively follow links
+        allow_non_regular (bool):
         verbose (int): set the level of verbosity
 
     Returns:
         contents (dict): dictionary where the key is the subfolder, relative
         total_size (int): total size of sub-files and sub-directories in bytes
     """
-    if base_path.endswith(os.path.sep):
+    if base_path.endswith(os.path.sep) and len(base_path) > 1:
         base_path = base_path[:-len(os.path.sep)]
     contents = {}
     total_size, num_files, num_dirs = 0, 0, 0
-
-    for root, dirs, files in os.walk(base_path, followlinks=followlinks):
-        basename = root[len(base_path):]
-        depth = basename.count(os.path.sep)
+    for root, dirs, files in os.walk(base_path, followlinks=follow_links):
+        base_subpath = root[len(base_path) + len(os.path.sep):]
+        depth = root[len(base_path):].count(os.path.sep)
         for name in dirs + files:
             path = os.path.join(root, name)
             try:
@@ -103,16 +104,23 @@ def disk_usage(
                 if verbose >= VERB_LVL['high']:
                     warnings.warn(path + ': could not determine size')
                 size = 0
-            accepted = \
-                (not only_dirs or only_dirs and os.path.isdir(path)) and \
-                (show_hidden or not show_hidden and not _is_hidden(name))
-            if (max_depth < 0 or depth < max_depth) and accepted:
-                name = path[len(base_path) + len(os.path.sep):]
+            is_dir = os.path.isdir(path)
+            is_regular = os.path.isfile(path) or is_dir
+            is_accepted = \
+                (not only_dir or only_dir and is_dir) and \
+                (show_hidden or not show_hidden and not _is_hidden(name)) and \
+                (allow_non_regular or is_regular) and \
+                (follow_links or not os.path.islink(path))
+            if (max_depth < 0 or depth < max_depth) and is_accepted:
+                name = path[len(base_path) + len(os.path.sep):] + (
+                    os.path.sep if os.path.isdir(path) else '')
                 contents[name] = size
             for key in contents.keys():
-                if basename[1:].startswith(key):
+                offset = len(os.path.sep) if key.endswith(os.path.sep) else 0
+                if base_subpath.startswith(key[:-offset]) and is_accepted:
                     contents[key] += size
-            total_size += size
+            if is_accepted:
+                total_size += size
         num_files += len(files)
         num_dirs += len(dirs)
     return contents, total_size, num_files, num_dirs
@@ -140,6 +148,8 @@ def progress_bar(
     Returns:
         text (str): The fill bar.
     """
+    if factor > 1.0:
+        factor = 1.0
     fill_size = int(round(factor * size))
     # empty_size = int(round((1.0 - factor) * size))
     text = (fill * (size // len(fill) + 1))[0:fill_size] + \
@@ -270,9 +280,9 @@ def disk_usage_to_str(
             index = 0
             msg = '{}: unknown sorting. Fall back to: name'.format(sort_by)
             warnings.warn(msg)
-        reversed = sort_by.endswith('_r')
+        reverse = sort_by.endswith('_r')
         sorted_items = sorted(
-            list(contents.items()), key=lambda x: x[index], reverse=reversed)
+            list(contents.items()), key=lambda x: x[index], reverse=reverse)
         for (name, size) in sorted_items:
             percent = size / total_size if total_size != 0.0 else 0.0
             size_str, units_str = humanize(size, units)
@@ -280,7 +290,7 @@ def disk_usage_to_str(
                 ' '.join((
                     progress_bar(percent, bar_size) if bar_size > 0 else '',
                     '{:>{len_size}.{len_precision}%}'.format(
-                        percent, len_size=4 + percent_precision,
+                        percent, len_size=3 + 1 + 1 + percent_precision,
                         len_precision=percent_precision),
                     '{:>{len_size}}{:<{len_units}}'.format(
                         size_str, units_str,
@@ -297,10 +307,11 @@ def disk_usage_to_str(
 # ======================================================================
 def hdu(
         base_paths,
-        only_dirs,
+        allow_non_regular,
+        only_dir,
         show_hidden,
         max_depth,
-        followlinks,
+        follow_links,
         sort_by,
         units,
         percent_precision,
@@ -312,10 +323,10 @@ def hdu(
 
     Args:
         base_paths (str): list of paths where to operate
-        only_dirs (bool): show only directories and not files
+        only_dir (bool): show only directories and not files
         show_hidden (bool): allow display of hidden files and directories
         max_depth (int): max recursion depth (negative for unlimited)
-        followlinks (bool): recursively follow links
+        follow_links (bool): recursively follow links
         sort_by (str): specify how to sort the results
             ['name'|'name_r'|'size'|'size_r']
         units (str): units to use ['iec'|'si'|'unix'|<exact>] (e.g. 'KiB').
@@ -331,7 +342,8 @@ def hdu(
     for i, base_path in enumerate(base_paths):
         if os.path.isdir(base_path):
             contents, total, num_files, num_dirs = disk_usage(
-                base_path, only_dirs, show_hidden, max_depth, followlinks,
+                base_path, allow_non_regular, only_dir, show_hidden, max_depth,
+                follow_links,
                 verbose)
             line_sep = '\0' if eof_line_sep else '\n'
             text = disk_usage_to_str(
@@ -385,19 +397,27 @@ def handle_arg():
         help='directory where to estimate disk usage [%(default)s]')
     # :: Add additional arguments
     arg_parser.add_argument(
-        '-s', '--only_dirs',
+        '-s', '--only_dir',
         action='store_true',
         help='show only directories and not files [%(default)s]')
     arg_parser.add_argument(
         '-a', '--no_hidden',
         action='store_false',
         help='do not show hidden files [%(default)s]')
+    # arg_parser.add_argument(
+    #     '-m', '--skip_mount_points',
+    #     action='store_true',
+    #     help='skip mount points during recursion [%(default)s]')
     arg_parser.add_argument(
         '-d', '--max_depth', metavar='N',
         type=int, default=1,
         help='max recursion depth (negative for unlimited) [%(default)s]')
     arg_parser.add_argument(
-        '-l', '--followlinks',
+        '-g', '--allow_non_regular',
+        action='store_true',
+        help='allow non-regular files to be analyzed [%(default)s]')
+    arg_parser.add_argument(
+        '-l', '--follow_links',
         action='store_true',
         help='recursively follow links [%(default)s]')
     arg_parser.add_argument(
@@ -440,7 +460,8 @@ def main(argv=None):
 
     hdu(
         args.TARGET,
-        args.only_dirs, args.no_hidden, args.max_depth, args.followlinks,
+        args.allow_non_regular, args.only_dir, args.no_hidden,
+        args.max_depth, args.follow_links,
         args.units, args.sort_by, args.percent_precision, args.bar_size,
         args.eof_line_sep, args.verbose)
 
