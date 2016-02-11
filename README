@@ -11,9 +11,8 @@ It includes the following features:
 - show the size of each item in the specified units
 - support for SI, IEC and UNIX ('du') units
 - maximum depth (of the displayed items) can be specified
-- analysis of symlinks and non-regular files can be skipped
+- optionally follow symlinks, mount points, special files and hidden files
 - can filter results to display only directories
-- can filter results to hide hidden files (starting with '.')
 - can output results ending with '\\0' instead of newlines (useful for parsing)
 - can sort results by name or by size
 

@@ -18,15 +18,16 @@ from __future__ import unicode_literals
 # ======================================================================
 # :: Python Standard Library Imports
 import os  # Miscellaneous operating system interfaces
-import sys  # System-specific parameters and functions
+# import sys  # System-specific parameters and functions
 import math  # Mathematical functions
 import argparse  # Parser for command-line options, arguments and subcommands
 import re  # Regular expression operations
 import warnings  # Warning control
+import stat  # Interpreting stat() results
 
 # ======================================================================
 # :: Version
-__version__ = '0.2.2.6'
+__version__ = '0.2.3.0'
 
 # ======================================================================
 # :: Project Details
@@ -60,86 +61,142 @@ MAX_CHAR_SIZE = 4
 
 
 # ======================================================================
-def _is_hidden(filename):
-    return filename[0] == '.'
+def _is_hidden(filepath):
+    return os.path.basename(filepath)[0] == '.'
+
+
+# ======================================================================
+def _is_special(stats_mode):
+    is_special = not stat.S_ISREG(stats_mode) and \
+                 not stat.S_ISDIR(stats_mode) and \
+                 not stat.S_ISLNK(stats_mode)
+    return is_special
+
+
+# ======================================================================
+def _or_not_and(flag, check):
+    return flag or not flag and check
+
+
+# ======================================================================
+def _or_not_and_not(flag, check):
+    return flag or not flag and not check
+
+
+# ======================================================================
+def walk2(
+        base,
+        follow_links=False,
+        follow_mounts=False,
+        allow_special=False,
+        allow_hidden=True,
+        on_error=None):
+    """
+
+    Args:
+        base (str): directory where to operate
+        follow_links (bool): follow links during recursion
+        follow_mounts (bool): follow mount points during recursion
+        allow_special (bool): include special files
+        allow_hidden (bool): include hidden files
+        on_error (callable): function to call on error
+
+    Returns:
+
+    """
+    try:
+        for name in os.listdir(base):
+            path = os.path.join(base, name)
+            stats = os.stat(path)
+            mode = stats.st_mode
+            # for some reasons, stat.S_ISLINK and os.path.islink results differ
+            allow = \
+                _or_not_and_not(follow_links, os.path.islink(path)) and \
+                _or_not_and_not(follow_mounts, os.path.ismount(path)) and \
+                _or_not_and_not(allow_special, _is_special(mode)) and \
+                _or_not_and_not(allow_hidden, _is_hidden(path))
+            if allow:
+                yield path, stats
+                if os.path.isdir(path):
+                    next_level = walk2(
+                        path, follow_links, follow_mounts,
+                        allow_special, allow_hidden, on_error)
+                    for next_path, next_stats in next_level:
+                        yield next_path, next_stats
+
+    except OSError as error:
+        if on_error is not None:
+            on_error(error)
+        return
 
 
 # ======================================================================
 def disk_usage(
-        base_path=os.getcwd(),
-        allow_non_regular=True,
+        base=os.getcwd(),
+        follow_links=True,
+        follow_mounts=False,
+        allow_special=True,
+        allow_hidden=True,
         only_dir=False,
-        show_hidden=True,
         max_depth=1,
-        follow_links=False,
         verbose=D_VERB_LVL):
     """
     Display a human-friendly summary of disk usage.
 
     Args:
-        base_path (str): directory where to operate
+        base (str): directory where to operate
+        follow_links (bool): follow links during recursion
+        follow_mounts (bool): follow mount points during recursion
+        allow_special (bool): include special files
+        allow_hidden (bool): include hidden files
         only_dir (bool): show only directories and not files
-        show_hidden (bool): allow display of hidden files and directories
         max_depth (int): max recursion depth (negative for unlimited)
-        follow_links (bool): recursively follow links
-        allow_non_regular (bool):
         verbose (int): set the level of verbosity
 
     Returns:
-        contents (dict): dictionary where the key is the subfolder, relative
+        items (dict): dictionary where the key is the subfolder, relative
         total_size (int): total size of sub-files and sub-directories in bytes
     """
-    if base_path.endswith(os.path.sep) and len(base_path) > 1:
-        base_path = base_path[:-len(os.path.sep)]
-    contents = {}
-    total_size, num_files, num_dirs = 0, 0, 0
-    for root, dirs, files in os.walk(base_path, followlinks=follow_links):
-        base_subpath = root[len(base_path) + len(os.path.sep):]
-        depth = root[len(base_path):].count(os.path.sep)
-        total_size += os.path.getsize(root)
-        for key in contents.keys():
-            if key.endswith(os.path.sep):
-                key_str = key[:-len(os.path.sep)]
+    if base.endswith(os.path.sep) and len(base) > 1:
+        base = base[:-len(os.path.sep)]
+    base_depth = base.count(os.path.sep)
+    items = {}
+    dir_items = {}
+    total_size = os.path.getsize(base)
+    num_files, num_dirs = 0, 1
+    paths = walk2(
+        base, follow_links, follow_mounts, allow_special, allow_hidden)
+    for path, stats in paths:
+        size = stats.st_size
+        if verbose >= VERB_LVL['debug']:
+            print(size, path)
+        subpath = path[len(base) + len(os.path.sep):]
+        depth = path.count(os.path.sep) - base_depth - 1
+        is_dir = os.path.isdir(path)
+        is_displayed = \
+            ((not only_dir) or only_dir and is_dir)
+        if (max_depth < 0 or depth < max_depth) and is_displayed:
+            name = path[len(base) + len(os.path.sep):]
+            if is_dir:
+                dir_items[name] = size
             else:
-                key_str = key
-            if base_subpath.startswith(key_str):
-                contents[key] += size
-        print(root)
-        for name in dirs + files:
-            path = os.path.join(root, name)
-            try:
-                size = os.path.getsize(path)
-                if verbose >= VERB_LVL['debug']:
-                    print(size, path)
-            except os.error:
-                if verbose >= VERB_LVL['high']:
-                    warnings.warn(path + ': could not determine size')
-                size = 0
-            is_dir = os.path.isdir(path)
-            is_regular = os.path.isfile(path) or is_dir
-            is_accepted = \
-                (not only_dir or only_dir and is_dir) and \
-                (show_hidden or not show_hidden and not _is_hidden(name))
-            is_displayed = \
-                (allow_non_regular or is_regular) and \
-                (follow_links or not os.path.islink(path))
-            if is_accepted:
-                if (max_depth < 0 or depth < max_depth) and is_displayed:
-                    name = path[len(base_path) + len(os.path.sep):] + (
-                        os.path.sep if is_dir else '')
-                    contents[name] = size
+                items[name] = size
+        else:
+            for key in dir_items.keys():
+                if key.endswith(os.path.sep):
+                    key_str = key[:-len(os.path.sep)]
                 else:
-                    for key in contents.keys():
-                        if key.endswith(os.path.sep):
-                            key_str = key[:-len(os.path.sep)]
-                        else:
-                            key_str = key
-                        if base_subpath.startswith(key_str):
-                            contents[key] += size
-                total_size += size
-        num_files += len(files)
-        num_dirs += len(dirs)
-    return contents, total_size, num_files, num_dirs
+                    key_str = key
+                if subpath.startswith(key_str):
+                    dir_items[key] += size
+                    break
+        total_size += size
+        if is_dir:
+            num_dirs += 1
+        else:
+            num_files += 1
+    items.update({k + os.path.sep: v for k, v in dir_items.items()})
+    return items, total_size, num_files, num_dirs
 
 
 # ======================================================================
@@ -271,10 +328,10 @@ def disk_usage_to_str(
         num_files (int): total number of files
         num_dirs (int): total number of dirs
         base_path (str): directory where to operate
-        units (str): units to use ['iec'|'si'|'unix'|<exact>] (e.g. 'KiB').
-            See 'humanize' for more details
         sort_by (str): specify how to sort the results
             ['name'|'name_r'|'size'|'size_r']
+        units (str): units to use ['iec'|'si'|'unix'|<exact>] (e.g. 'KiB').
+            See 'humanize' for more details
         percent_precision (int): Number of decimal digits for percentage
         bar_size (int): number of characters of the progress bar
         line_sep (str): line separator
@@ -323,11 +380,12 @@ def disk_usage_to_str(
 # ======================================================================
 def hdu(
         base_paths,
-        allow_non_regular,
-        only_dir,
-        show_hidden,
-        max_depth,
         follow_links,
+        follow_mounts,
+        allow_special,
+        allow_hidden,
+        only_dir,
+        max_depth,
         sort_by,
         units,
         percent_precision,
@@ -338,13 +396,14 @@ def hdu(
     Human-friendly summary of disk usage.
 
     Args:
-        base_paths (str): list of paths where to operate
+        follow_links (bool): follow links during recursion
+        follow_mounts (bool): follow mount points during recursion
+        allow_special (bool): include special files
+        allow_hidden (bool): include hidden files
         only_dir (bool): show only directories and not files
-        show_hidden (bool): allow display of hidden files and directories
         max_depth (int): max recursion depth (negative for unlimited)
-        follow_links (bool): recursively follow links
-        sort_by (str): specify how to sort the results
-            ['name'|'name_r'|'size'|'size_r']
+        sort_by (str): specify how to sort the results.
+            Allowed values: ['name'|'name_r'|'size'|'size_r']
         units (str): units to use ['iec'|'si'|'unix'|<exact>] (e.g. 'KiB').
             See 'humanize' for more details
         percent_precision (int): number of decimal digits for percentage
@@ -355,30 +414,29 @@ def hdu(
     Returns:
         None
     """
-    for i, base_path in enumerate(base_paths):
-        if os.path.isdir(base_path):
+    for i, base in enumerate(base_paths):
+        if os.path.isdir(base):
             contents, total, num_files, num_dirs = disk_usage(
-                base_path, allow_non_regular, only_dir, show_hidden, max_depth,
-                follow_links,
-                verbose)
+                base, follow_links, follow_mounts, allow_special, allow_hidden,
+                only_dir, max_depth, verbose)
             line_sep = '\0' if eof_line_sep else '\n'
             text = disk_usage_to_str(
-                contents, total, num_files, num_dirs, base_path, units,
-                sort_by, percent_precision, bar_size, line_sep, verbose)
+                contents, total, num_files, num_dirs, base, sort_by, units,
+                percent_precision, bar_size, line_sep, verbose)
             if i > 0:
                 print()
             print(text)
-        elif os.path.isfile(base_path):
-            size = os.path.getsize(base_path)
-            contents = {base_path: size}
+        elif os.path.isfile(base):
+            size = os.path.getsize(base)
+            contents = {base: size}
             line_sep = '\0' if eof_line_sep else '\n'
             text = disk_usage_to_str(
-                contents, size, 1, 0, base_path, units, sort_by,
+                contents, size, 1, 0, base, sort_by, units,
                 percent_precision, bar_size, line_sep, verbose)
             print(text)
         else:
             if verbose >= VERB_LVL['low']:
-                print('W: file not found: {}'.format(base_path))
+                print('W: file not found: {}'.format(base))
 
 
 # ======================================================================
@@ -413,36 +471,36 @@ def handle_arg():
         help='directory where to estimate disk usage [%(default)s]')
     # :: Add additional arguments
     arg_parser.add_argument(
-        '-s', '--only_dir',
+        '-l', '--follow_links',
+        action='store_true',
+        help='follow links during recursion [%(default)s]')
+    arg_parser.add_argument(
+        '-m', '--follow_mounts',
+        action='store_true',
+        help='follow mount points during recursion [%(default)s]')
+    arg_parser.add_argument(
+        '-e', '--allow_special',
+        action='store_true',
+        help='include special files [%(default)s]')
+    arg_parser.add_argument(
+        '-i', '--allow_hidden',
+        action='store_true',
+        help='include hidden files [%(default)s]')
+    arg_parser.add_argument(
+        '-s', '--only_dirs',
         action='store_true',
         help='show only directories and not files [%(default)s]')
-    arg_parser.add_argument(
-        '-a', '--no_hidden',
-        action='store_false',
-        help='do not show hidden files [%(default)s]')
-    # arg_parser.add_argument(
-    #     '-m', '--skip_mount_points',
-    #     action='store_true',
-    #     help='skip mount points during recursion [%(default)s]')
     arg_parser.add_argument(
         '-d', '--max_depth', metavar='N',
         type=int, default=1,
         help='max recursion depth (negative for unlimited) [%(default)s]')
     arg_parser.add_argument(
-        '-g', '--allow_non_regular',
-        action='store_true',
-        help='allow non-regular files to be analyzed [%(default)s]')
-    arg_parser.add_argument(
-        '-l', '--follow_links',
-        action='store_true',
-        help='recursively follow links [%(default)s]')
+        '-o', '--sort_by', metavar='name|name_r|size|size_r',
+        default='size',
+        help='display results in the specified units [%(default)s]')
     arg_parser.add_argument(
         '-u', '--units', metavar='iec|si|unix|<exact>',
         default='unix',
-        help='display results in the specified units [%(default)s]')
-    arg_parser.add_argument(
-        '-o', '--sort_by', metavar='name|name_r|size|size_r',
-        default='size',
         help='display results in the specified units [%(default)s]')
     arg_parser.add_argument(
         '-p', '--percent_precision', metavar='N',
@@ -462,9 +520,6 @@ def handle_arg():
 # ======================================================================
 def main(argv=None):
     """The main routine."""
-    if argv is None:
-        argv = sys.argv[1:]
-
     # :: handle program parameters
     arg_parser = handle_arg()
     args = arg_parser.parse_args()
@@ -476,9 +531,10 @@ def main(argv=None):
 
     hdu(
         args.TARGET,
-        args.allow_non_regular, args.only_dir, args.no_hidden,
-        args.max_depth, args.follow_links,
-        args.units, args.sort_by, args.percent_precision, args.bar_size,
+        args.follow_links, args.follow_mounts,
+        args.allow_special, args.allow_hidden,
+        args.only_dirs, args.max_depth,
+        args.sort_by, args.units, args.percent_precision, args.bar_size,
         args.eof_line_sep, args.verbose)
 
 
