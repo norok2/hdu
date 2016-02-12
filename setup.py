@@ -8,7 +8,8 @@ See: https://packaging.python.org/en/latest/distributing.html
 
 from setuptools import setup, find_packages
 from codecs import open  # use a consistent encoding (in Python 2)
-import os
+import os  # Miscellaneous operating system interfaces
+import re  # Regular expression operations
 
 cwd = os.path.realpath(os.path.dirname(__file__))
 
@@ -16,13 +17,29 @@ cwd = os.path.realpath(os.path.dirname(__file__))
 with open(os.path.join(cwd, 'README'), encoding='utf-8') as readme_file:
     long_description_text = readme_file.read()
 
-# fix version
-import setuptools_scm
-version_text = setuptools_scm.get_version()
-version_source = 'hdu/hdu.py'
-with open(version_source, 'w') as src_file:
+
+# ======================================================================
+def fix_version(
+        version=None,
+        source_filepath='hdu/hdu.py'):
+    if version is None:
+        import setuptools_scm
+
+        version = setuptools_scm.get_version()
+    with open(source_filepath, 'r+') as src_file:
+        src_str = src_file.read()
+        src_str = re.sub(
+            r"__version__ \= '.*'",
+            "__version__ = '{}'".format(version),
+            src_str)
+        src_file.seek(0)
+        src_file.write(src_str)
+    return version
 
 
+version_text = fix_version()
+
+# ======================================================================
 setup(
     name='hdu',
 

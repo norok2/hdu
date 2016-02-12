@@ -27,7 +27,7 @@ import stat  # Interpreting stat() results
 
 # ======================================================================
 # :: Version
-__version__ = '0.0.0.0+experimentalversion'
+__version__ = '0.2.3.1.dev1+ng88c35a0.d20160212'
 
 # ======================================================================
 # :: Project Details
