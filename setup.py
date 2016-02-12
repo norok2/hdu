@@ -49,8 +49,8 @@ setup(
     description='Human-friendly summary of disk usage.',
     long_description=long_description_text,
 
-    use_scm_version=True,
-    # version=version_text,
+    # use_scm_version=True,
+    version=version_text,
 
     url='https://bitbucket.org/norok2/hdu',
 
