@@ -25,7 +25,10 @@ def fix_version(
     if version is None:
         import setuptools_scm
 
-        version = setuptools_scm.get_version()
+        version = setuptools_scm.get_version(
+            version_scheme='post-release',
+            local_scheme='node-and-date'
+        )
     with open(source_filepath, 'r+') as src_file:
         src_str = src_file.read()
         src_str = re.sub(
@@ -46,7 +49,8 @@ setup(
     description='Human-friendly summary of disk usage.',
     long_description=long_description_text,
 
-    version=version_text,
+    use_scm_version=True,
+    # version=version_text,
 
     url='https://bitbucket.org/norok2/hdu',
 
@@ -98,4 +102,6 @@ setup(
             'hdu=hdu.hdu:main',
         ],
     },
+
+    setup_requires=['setuptools_scm'],
 )
