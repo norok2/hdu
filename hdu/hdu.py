@@ -27,7 +27,7 @@ import stat  # Interpreting stat() results
 
 # ======================================================================
 # :: Version
-__version__ = '0.2.3.0'
+__version__ = '0.0.0.0+experimentalversion'
 
 # ======================================================================
 # :: Project Details
@@ -62,7 +62,7 @@ MAX_CHAR_SIZE = 4
 
 # ======================================================================
 def _is_hidden(filepath):
-    return os.path.basename(filepath)[0] == '.'
+    return os.path.basename(filepath).decode('utf-8').startswith('.')
 
 
 # ======================================================================
@@ -368,7 +368,7 @@ def disk_usage_to_str(
                     '{:>{len_size}}{:<{len_units}}'.format(
                         size_str, units_str,
                         len_size=MAX_CHAR_SIZE, len_units=len_units),
-                    name)))
+                    name.decode('utf-8'))))
     lines.append(os.path.realpath(base_path))
     lines.append(
         '{}{} ({}B), {} file(s), {} dir(s)'.format(
@@ -518,7 +518,7 @@ def handle_arg():
 
 
 # ======================================================================
-def main(argv=None):
+def main():
     """The main routine."""
     # :: handle program parameters
     arg_parser = handle_arg()

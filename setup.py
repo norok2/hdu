@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Setup instructions.
 
@@ -6,7 +8,6 @@ See: https://packaging.python.org/en/latest/distributing.html
 
 from setuptools import setup, find_packages
 from codecs import open  # use a consistent encoding (in Python 2)
-from hdu.hdu import __version__ as version_text
 import os
 
 cwd = os.path.realpath(os.path.dirname(__file__))
@@ -14,6 +15,13 @@ cwd = os.path.realpath(os.path.dirname(__file__))
 # get the long description from the README file
 with open(os.path.join(cwd, 'README'), encoding='utf-8') as readme_file:
     long_description_text = readme_file.read()
+
+# fix version
+import setuptools_scm
+version_text = setuptools_scm.get_version()
+version_source = 'hdu/hdu.py'
+with open(version_source, 'w') as src_file:
+
 
 setup(
     name='hdu',
