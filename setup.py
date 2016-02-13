@@ -36,7 +36,7 @@ def fix_version(
             "__version__ = '{}'".format(version),
             src_str)
         src_file.seek(0)
-        src_file.write(src_str)
+        src_file.write(src_str + '\0')
     return version
 
 
