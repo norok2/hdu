@@ -13,12 +13,12 @@ by Roberto Metere and has been improved suggestions from Stefania Grasso.
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
-from __future__ import unicode_literals
+# from __future__ import unicode_literals
 
 # ======================================================================
 # :: Python Standard Library Imports
 import os  # Miscellaneous operating system interfaces
-import sys  # System-specific parameters and functions
+# import sys  # System-specific parameters and functions
 import math  # Mathematical functions
 import argparse  # Parser for command-line options, arguments and subcommands
 import re  # Regular expression operations
@@ -27,7 +27,7 @@ import stat  # Interpreting stat() results
 
 # ======================================================================
 # :: Version
-__version__ = '0.2.3.9.post0+ng26a3d29.d20160213'
+__version__ = '0.2.3.10.dev0+ng77549a5.d20160213'
 
 # ======================================================================
 # :: Project Details
@@ -62,9 +62,10 @@ MAX_CHAR_SIZE = 4
 
 # ======================================================================
 def _is_hidden(filepath):
-    if sys.version_info[0] > 2:
-        filepath = filepath.encode('utf-8')
-    return os.path.basename(filepath.decode('utf-8')).startswith('.')
+    # if sys.version_info[0] > 2:
+    #     filepath = filepath.encode('utf-8')
+    # filepath = filepath.decode('utf-8')
+    return os.path.basename(filepath).startswith('.')
 
 
 # ======================================================================
@@ -359,8 +360,6 @@ def disk_usage_to_str(
         sorted_items = sorted(
             list(contents.items()), key=lambda x: x[index], reverse=reverse)
         for (name, size) in sorted_items:
-            if sys.version_info[0] > 2:
-                name = name.encode('utf-8')
             percent = size / total_size if total_size != 0.0 else 0.0
             size_str, units_str = humanize(size, units)
             lines.append(
@@ -372,7 +371,7 @@ def disk_usage_to_str(
                     '{:>{len_size}}{:<{len_units}}'.format(
                         size_str, units_str,
                         len_size=MAX_CHAR_SIZE, len_units=len_units),
-                    name.decode('utf-8'))))
+                    name)))
     lines.append(os.path.realpath(base_path))
     lines.append(
         '{}{} ({}B), {} file(s), {} dir(s)'.format(
@@ -400,6 +399,7 @@ def hdu(
     Human-friendly summary of disk usage.
 
     Args:
+        base_paths (list[str]): List of paths to analyze
         follow_links (bool): follow links during recursion
         follow_mounts (bool): follow mount points during recursion
         allow_special (bool): include special files

@@ -35,14 +35,11 @@ def fix_version(
     if version is None:
         import setuptools_scm
 
-        version = setuptools_scm.get_version(
-            version_scheme='post-release',
-            local_scheme='node-and-date'
-        )
+        version = setuptools_scm.get_version()
     with open(source_filepath, 'r') as src_file:
         src_str = src_file.read()
         src_str = re.sub(
-            r"__version__ \= '.*'",
+            r"__version__ = '.*'",
             "__version__ = '{}'".format(version),
             src_str)
 
@@ -89,13 +86,7 @@ setup(
 
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        # 'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
     ],
 
     keywords='hdu du disk usage console cli tui',
