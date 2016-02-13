@@ -13,7 +13,7 @@ by Roberto Metere and has been improved suggestions from Stefania Grasso.
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
-# from __future__ import unicode_literals
+from __future__ import unicode_literals
 
 # ======================================================================
 # :: Python Standard Library Imports
@@ -419,6 +419,8 @@ def hdu(
         None
     """
     for i, base in enumerate(base_paths):
+        # forces the same type as string literals to avoid encoding errors
+        base = '' + base
         if os.path.isdir(base):
             contents, total, num_files, num_dirs = disk_usage(
                 base, follow_links, follow_mounts, allow_special, allow_hidden,
