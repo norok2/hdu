@@ -20,6 +20,3 @@ for FILE in dist/*; do
         twine upload ${FILE} --config-file ${PYPIRC_FILE}
     fi
 done
-
-
-
