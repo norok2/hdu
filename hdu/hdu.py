@@ -419,8 +419,14 @@ def hdu(
         None
     """
     for i, base in enumerate(base_paths):
-        # forces the same type as string literals to avoid Py2 encoding errors
-        base = '' + base
+        # deal with unicode input
+        try:
+            base = base.encode('utf-8')
+        except UnicodeDecodeError:
+            pass
+        finally:
+            base = base.decode('utf-8')
+
         if os.path.isdir(base):
             contents, total, num_files, num_dirs = disk_usage(
                 base, follow_links, follow_mounts, allow_special, allow_hidden,
