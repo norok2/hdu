@@ -22,6 +22,16 @@ with open(os.path.join(cwd, 'README'), encoding='utf-8') as readme_file:
 def fix_version(
         version=None,
         source_filepath='hdu/hdu.py'):
+    """
+    Fix version in source code.
+
+    Args:
+        version (str): version to be used for fixing the source code
+        source_filepath (str): Path to file where __version__ is located
+
+    Returns:
+
+    """
     if version is None:
         import setuptools_scm
 
@@ -41,7 +51,7 @@ def fix_version(
     return version
 
 
-version_text = fix_version()
+version_text = fix_version('0.2.3.10')
 
 # ======================================================================
 setup(
