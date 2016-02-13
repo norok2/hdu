@@ -29,14 +29,15 @@ def fix_version(
             version_scheme='post-release',
             local_scheme='node-and-date'
         )
-    with open(source_filepath, 'r+') as src_file:
+    with open(source_filepath, 'r') as src_file:
         src_str = src_file.read()
         src_str = re.sub(
             r"__version__ \= '.*'",
             "__version__ = '{}'".format(version),
             src_str)
-        src_file.seek(0)
-        src_file.write(src_str + '\0')
+
+    with open(source_filepath, 'w') as src_file:
+        src_file.write(src_str)
     return version
 
 
