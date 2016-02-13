@@ -51,7 +51,7 @@ def fix_version(
     return version
 
 
-version_text = fix_version('0.2.3.10')
+version_text = fix_version()
 
 # ======================================================================
 setup(

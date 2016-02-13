@@ -18,7 +18,7 @@ from __future__ import unicode_literals
 # ======================================================================
 # :: Python Standard Library Imports
 import os  # Miscellaneous operating system interfaces
-# import sys  # System-specific parameters and functions
+import sys  # System-specific parameters and functions
 import math  # Mathematical functions
 import argparse  # Parser for command-line options, arguments and subcommands
 import re  # Regular expression operations
@@ -27,7 +27,7 @@ import stat  # Interpreting stat() results
 
 # ======================================================================
 # :: Version
-__version__ = '0.2.3.10'
+__version__ = '0.2.3.8.post3+ng3d72e10.d20160213'
 
 # ======================================================================
 # :: Project Details
@@ -62,7 +62,9 @@ MAX_CHAR_SIZE = 4
 
 # ======================================================================
 def _is_hidden(filepath):
-    return os.path.basename(filepath).decode('utf-8').startswith('.')
+    if sys.version_info[0] > 2:
+        filepath = filepath.encode('utf-8')
+    return os.path.basename(filepath.decode('utf-8')).startswith('.')
 
 
 # ======================================================================
@@ -157,15 +159,15 @@ def disk_usage(
         items (dict): dictionary where the key is the subfolder, relative
         total_size (int): total size of sub-files and sub-directories in bytes
     """
-    if base.endswith(os.path.sep) and len(base) > 1:
-        base = base[:-len(os.path.sep)]
-    base_depth = base.count(os.path.sep)
     items = {}
     dir_items = {}
     total_size = os.path.getsize(base)
     num_files, num_dirs = 0, 1
     paths = walk2(
         base, follow_links, follow_mounts, allow_special, allow_hidden)
+    if base.endswith(os.path.sep):
+        base = base[:-len(os.path.sep)]
+    base_depth = base.count(os.path.sep)
     for path, stats in paths:
         size = stats.st_size
         if verbose >= VERB_LVL['debug']:
@@ -357,6 +359,8 @@ def disk_usage_to_str(
         sorted_items = sorted(
             list(contents.items()), key=lambda x: x[index], reverse=reverse)
         for (name, size) in sorted_items:
+            if sys.version_info[0] > 2:
+                name = name.encode('utf-8')
             percent = size / total_size if total_size != 0.0 else 0.0
             size_str, units_str = humanize(size, units)
             lines.append(
