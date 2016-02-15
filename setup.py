@@ -6,11 +6,25 @@ Setup instructions.
 See: https://packaging.python.org/en/latest/distributing.html
 """
 
-from setuptools import setup, find_packages
-from codecs import open  # use a consistent encoding (in Python 2)
+# ======================================================================
+# :: Future Imports (for Python 2)
+from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
+from __future__ import unicode_literals
+
+# ======================================================================
+# :: Python Standard Library Imports
 import os  # Miscellaneous operating system interfaces
 import re  # Regular expression operations
+from codecs import open  # use a consistent encoding (in Python 2)
 
+# ======================================================================
+# :: Choice of the setup tools
+from setuptools import setup
+from setuptools import find_packages
+
+# get the working directory for the setup script
 cwd = os.path.realpath(os.path.dirname(__file__))
 
 # get the long description from the README file
@@ -30,7 +44,7 @@ def fix_version(
         source_filepath (str): Path to file where __version__ is located
 
     Returns:
-
+        version (str): the actual version text used
     """
     if version is None:
         import setuptools_scm
@@ -51,6 +65,7 @@ def fix_version(
 version_text = fix_version()
 
 # ======================================================================
+# :: call the setup tool
 setup(
     name='hdu',
 
