@@ -120,5 +120,8 @@ setup(
         ],
     },
 
-    setup_requires=['setuptools_scm'],
+    setup_requires=[
+        'setuptools',
+        'setuptools_scm'
+    ],
 )
