@@ -8,10 +8,8 @@ See: https://packaging.python.org/en/latest/distributing.html
 
 # ======================================================================
 # :: Future Imports (for Python 2)
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (
+    division, absolute_import, print_function, unicode_literals)
 
 # ======================================================================
 # :: Python Standard Library Imports
@@ -56,18 +54,17 @@ def fix_version(
 
         version = setuptools_scm.get_version()
     with open(source_filepath, 'r') as src_file:
-        src_str = src_file.read()
+        src_str = src_file.read().decode('utf-8')
         src_str = re.sub(
             r"__version__ = '.*'",
             "__version__ = '{}'".format(version),
-            src_str)
+            src_str, flags=re.UNICODE)
 
     with open(source_filepath, 'w') as src_file:
-        src_file.write(src_str)
+        src_file.write(src_str.encode('utf-8'))
+
     return version
 
-
-version_text = fix_version()
 
 # ======================================================================
 # :: call the setup tool
@@ -78,7 +75,7 @@ setup(
     long_description=LONG_DESCRIPTION_TEXT,
 
     # use_scm_version=True,
-    version=version_text,
+    version=fix_version(),
 
     url='https://bitbucket.org/norok2/hdu',
 
