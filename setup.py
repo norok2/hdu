@@ -119,14 +119,18 @@ setup(
 
     # data_files=[('my_data', ['data/data_file'])],
 
+    setup_requires=[
+        'setuptools',
+        'setuptools_scm'
+    ],
+
+    extras_require={
+        'blessed': 'blessed',
+    },
+
     entry_points={
         'console_scripts': [
             'hdu=hdu.hdu:main',
         ],
     },
-
-    setup_requires=[
-        'setuptools',
-        'setuptools_scm'
-    ],
 )
