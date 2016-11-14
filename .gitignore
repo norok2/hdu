@@ -2,6 +2,10 @@
 # :: Tools
 # PyCharm
 .idea
+# create changelog from git
+# (being a dump of git commits, does not need to be tracked)
+CHANGELOG.*
+README.html
 
 # =====================================================================
 # :: C++

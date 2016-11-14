@@ -24,18 +24,23 @@ from codecs import open  # use a consistent encoding (in Python 2)
 from setuptools import setup
 from setuptools import find_packages
 
+# ======================================================================
+# project specific variables
+VERSION_FILEPATH = 'hdu/hdu.py'
+README_FILEPATH = 'README.rst'
+
 # get the working directory for the setup script
-cwd = os.path.realpath(os.path.dirname(__file__))
+CWD = os.path.realpath(os.path.dirname(__file__))
 
 # get the long description from the README file
-with open(os.path.join(cwd, 'README'), encoding='utf-8') as readme_file:
-    long_description_text = readme_file.read()
+with open(os.path.join(CWD, README_FILEPATH), encoding='utf-8') as readme_file:
+    LONG_DESCRIPTION_TEXT = readme_file.read()
 
 
 # ======================================================================
 def fix_version(
         version=None,
-        source_filepath='hdu/hdu.py'):
+        source_filepath=VERSION_FILEPATH):
     """
     Fix version in source code.
 
@@ -70,7 +75,7 @@ setup(
     name='hdu',
 
     description='Human-friendly summary of disk usage.',
-    long_description=long_description_text,
+    long_description=LONG_DESCRIPTION_TEXT,
 
     # use_scm_version=True,
     version=version_text,
@@ -104,7 +109,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
 
-    keywords='hdu du disk usage console cli tui',
+    keywords=('hdu', 'du', 'disk', 'usage', 'console', 'cli', 'tui'),
 
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
 
