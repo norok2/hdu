@@ -43,6 +43,7 @@ You are welcome to redistribute it under its terms and conditions.
         """,
     'version': __version__
 }
+INFO['author'] = ', '.join(INFO['authors'])
 
 # ======================================================================
 # :: supported verbosity levels (level 4 skipped on purpose)
@@ -457,18 +458,14 @@ def handle_arg():
     # :: Create Argument Parser
     arg_parser = argparse.ArgumentParser(
         description=__doc__,
-        epilog='v.{} - {}\n{}'.format(
-            INFO['version'], ', '.join(INFO['authors']),
-            INFO['license']),
+        epilog='v.{version} - {author}\n{license}'.format_map(INFO),
         formatter_class=argparse.RawDescriptionHelpFormatter)
     # :: Add POSIX standard arguments
     arg_parser.add_argument(
         '--ver', '--version',
-        version='%(prog)s - ver. {}\n{}\n{} {}\n{}'.format(
-            INFO['version'],
-            next(line for line in __doc__.splitlines() if line),
-            INFO['copyright'], ', '.join(INFO['authors']),
-            INFO['notice']),
+        version= \
+            '%(prog)s - ver. {version}\n{}\n{copyright} {author}\n{notice}' \
+                .format(next(l for l in __doc__.splitlines() if l), **INFO),
         action='version')
     arg_parser.add_argument(
         '-v', '--verbose',
