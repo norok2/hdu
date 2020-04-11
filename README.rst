@@ -27,13 +27,13 @@ The recommended way of installing the software is through
     $ pip install hdu
 
 Alternatively, you can the clone the source repository from
-`Bitbucket <https://bitbucket.org/norok2/hdu>`_:
+`GitHub <https://github.com/norok2/hdu>`_:
 
 .. code:: shell
 
     $ mkdir hdu
     $ cd hdu
-    $ git clone git@bitbucket.org:norok2/hdu.git
+    $ git clone git@github.com:norok2/hdu.git
     $ python setup.py install
 
 (last step may require additional permissions depending on your configuration)
